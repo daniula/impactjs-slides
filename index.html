@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Impact.js</title>
+
+    <meta charset='utf-8'>
+    <script src='slides.js'></script>
+    <link rel='stylesheet' type='text/css' href='styles.css' />
+    <link rel='stylesheet' type='text/css' href='custom.css' />
+  </head>
+  
+  <body style='display: none'>
+    <section class='slides layout-regular template-custom'>
+      
+      <article class='biglogo'></article>
+
+      <article>
+        <h1>Impact.js</h1>
+        <p>Game Development is fun</p>
+        <p><a href='http://about.me/daniel.mendalka'>Daniel Mendalka</a><br/><a href='http://twitter.com/daniula'>@daniula</a></p>
+      </article>
+
+      <article>
+        <h3>Few points to remember</h3>
+        <ul class='build'>
+          <li>Impact.js is not free - $99</li>
+          <li>It's not huge 3D engine</li>
+          <li>Requires Apache / Nginx for development</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>Good parts</h3>
+        <ul class='build'>
+          <li>Simple and fast to write</li>
+          <li>Weltmaister!</li>
+          <li>Works on mobile</li>
+          <li>+ some other tools</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>Examples - Biolab</h3>
+        <iframe src='http://playbiolab.com/'></iframe>
+      </article>
+
+      <article class='fill'>
+        <h3>Examples - Steamclash</h3>
+        <video class='centered' src='steamclash.webm' autoplay='true' muted='true' preload='auto' loop='true'>
+          Sorry, your browser doesn't support embedded videos,
+        </video>
+      </article>
+
+      <article class='fill'>
+        <h3>Project structure</h3>
+        <img src='project.png' />
+      </article>
+
+      <article>
+        <h3>Media</h3>
+        <img src='tank-enemy.png' />
+        <img style='margin: -50px 0 0 300px' src='terrain.png' />
+      </article>
+
+      <article class='smaller'>
+        <h3>main.js</h3>
+
+        <section>
+          <pre>
+ig.module( 
+  'game.main' 
+)
+.requires(
+  'impact.game',
+  // 'impact.font',
+
+  'game.entities.tank-cpu',
+  'game.entities.tank-player',
+
+  'game.levels.01' 
+)
+.defines(function(){
+
+  MyGame = ig.Game.extend({
+    /* … */
+  });
+
+  // Start the Game with 60fps, a resolution of 320x240, scaled
+  // up by a factor of 3
+  ig.main( '#canvas', MyGame, 60, 240, 224, 3 );
+});
+
+          </pre>
+        </section>
+      </article>
+
+      <article class='smaller'>
+        <h3>main.js</h3>
+
+        <section>
+          <pre>
+init: function() {
+  ig.input.bind(ig.KEY.UP_ARROW, 'up');
+  /* … */
+  ig.input.bind(ig.KEY.X, 'shoot');
+
+  this.loadLevel(Level01);
+},
+
+update: function() {
+  // Update all entities and backgroundMaps
+  this.parent();
+  
+  // Add your own, additional update code here
+},
+
+draw: function() {
+  // Draw all entities and backgroundMaps
+  this.parent();
+  
+  
+  // Add your own drawing code here
+  var x = ig.system.width/2,
+      y = ig.system.height/2;
+  
+  // this.font.draw( 'It Works!', x, y, ig.Font.ALIGN.CENTER );
+}
+          </pre>
+        </section>
+      </article>
+
+      <article>
+        <h3>Entities</h3>
+        <section>
+          <pre>
+ig.module( 'game.player')
+.requires('impact.entity')
+.defines(function(){
+
+  EntityPlayer = ig.Entity.extend({
+    /* … */
+  });
+
+});
+          </pre>
+        </section>
+      </article>
+
+      <article>
+        <h3>Entities - properties</h3>
+        <section>
+          <pre>
+EntityTank = ig.Entity.extend({
+  animSheet:    new ig.AnimationSheet('media/tank.png', 16, 16),
+  
+  // NEVER LITE PASSIVE ACTIVE FIXED
+  collides:     ig.Entity.COLLIDES.FIXED,
+  
+  // A B NONE BOTH
+  checkAgainst: ig.Entity.TYPE.B,
+  
+  // A B NONE
+  type:         ig.Entity.TYPE.A,
+  
+  /* … */
+});
+          </pre>
+        </section>
+      </article>
+
+      <article class="smaller">
+        <h3>Entities - init</h3>
+        <section>
+          <pre>
+EntityTank = ig.Entity.extend({
+  /* … */
+
+  init: function(x, y, settings) {
+    this.parent(x, y, settings);
+
+    this.addAnim('up', 0.1, [0,1]);
+    this.addAnim('right', 0.1, [2,3]);
+    this.addAnim('down', 0.1, [4,5]);
+    this.addAnim('left', 0.1, [6,7]);
+
+    this.addAnim('upSteady', 1, [0]);
+
+    this.currentAnim = this.anims.upSteady.rewind();
+  },
+
+  /* … */
+
+});
+          </pre>
+        </section>
+      </article>
+
+      <article class="smaller">
+        <h3>Entities - update &amp; others</h3>
+        <section>
+          <pre>
+EntityTank = ig.Entity.extend({
+  /* … */
+
+  update: function() {
+    if (ig.input.state('up')) {
+      /* … */
+    }
+
+    if (ig.input.pressed('shoot')) {
+      /* … */
+    }
+  },
+  
+  check: function(other) {
+    other.kill();
+    this.health -= 10;
+  },
+
+  kill: funtion() {
+    this.parent();
+
+    /* … */
+  }
+
+          </pre>
+        </section>
+      </article>
+
+      <article class="smaller">
+        <h3>Entities - collisions</h3>
+        <section>
+          <pre>
+// Collision Types - Determine if and how entities collide with each other
+
+// In ACTIVE vs. LITE or FIXED vs. ANY collisions, only the "weak" entity moves, while the other one stays fixed.
+// In ACTIVE vs. ACTIVE and ACTIVE vs. PASSIVE collisions, both entities are moved.
+// LITE or PASSIVE entities don't collide with other LITE or PASSIVE entities at all.
+// The behaiviour for FIXED vs. FIXED collisions is undefined.
+
+ig.Entity.COLLIDES = {
+  NEVER: 0,
+  LITE: 1,
+  PASSIVE: 2,
+  ACTIVE: 4,
+  FIXED: 8
+};
+
+
+// Entity Types - used for checks
+
+ig.Entity.TYPE = {
+  NONE: 0,
+  A: 1,
+  B: 2,
+  BOTH: 3
+};
+          </pre>
+        </section>
+      </article>
+
+      <article>
+        <h3>Weltmaister</h3>
+
+        <ul class="build">
+          <li>Right click – move</li>
+          <li>Space - choose background / entity</li>
+          <li>Shift - copy &amp; paste</li>
+          <li><a href="http://battlecity/weltmeister.html">Demo</a></li>
+      </article>
+
+      <article>
+        <h3>Pitfalls</h3>
+        <ul class="build">
+          <li>Only 2 types of Entities by default</li>
+          <li>Hard to make interaction between entity and background</li>
+          <li>Small bug in weltmaister</li>
+          <li>Be careful with update() when creating swarm game<br/>(100+ enemies)</li>
+        </ul>
+      </article>
+
+      <article>
+        <h1>Questions?</h1>
+      </article>
+    </section>
+    
+
+  </body>
+</html>
